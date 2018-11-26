@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>마인드에듀게시판</title>
+</head>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="common/dist/style.bundle.css">
+<link rel="stylesheet" href="common/css/sider_menu.css">
+<link rel="stylesheet" href="common/css/addStyle.css">
+<link rel="stylesheet" href="common/jsp/header.html">
+<script type='text/javascript' src='common/jsp/paging.js'></script>
+<script type="text/javascript" src="http://jsgetip.appspot.com"></script>
+
+<!--
+<link rel="stylesheet" href="/common/jsp/top.jsp">
+<link rel="stylesheet" href="/common/jsp/header.jsp">-->
+<script type="text/javascript">
+	/*
+     if(ip() != "121.138.149.199") {
+         alert("접근 권한이 없습니다");
+         history.back();
+     }
+	*/
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    $(document).ready(function(){
+        $("#header").load("common/jsp/header.html");
+        $("#titleArea").load("common/jsp/titleArea.html");
+    });
+
+    function goPage() {
+        location.href="boardInfo.html";
+    }
+
+    function gfn_csplit(str,delim){
+        var array = new Array();
+        if (str == "") return "";
+
+        array = str.split(delim);
+        return array;
+    }
+
+    function getDateTimeSplitComma(date_time) {
+        var date = "";
+        if (date_time == null) date_time = "";
+        if (date_time != "") {
+            date = gfn_csplit(date_time, ".");
+        }
+        return date[0];
+    }
+
+    function init() {
+        pagingfn.offset = "5";
+        pagingfn.totalCnt = "1";
+        pagingfn.splitCnt = "10";
+        pagingfn.initPage();
+
+        /*optional */
+        pagingfn.class_btnfirst = "btnpage-first";
+        pagingfn.class_btnprev = ">>>>>>>>>";
+        pagingfn.class_btnnext = "btnpage-next";
+        pagingfn.class_btnlast = "btnpage-last";
+        pagingfn.class_btncurrent = "btnpage-list current";
+        pagingfn.class_btnlist = "btnpage-list";
+        pagingfn.appendListStr = function(){
+            return;
+        };
+        //paging(2, 10, 10, 1);
+        var data = new FormData();
+        var sPage = getParameterByName('sPage');
+        $.ajax({
+            //url : "http://172.30.1.11:8888/mindedu-api/board/file_list/",
+            url: "http://211.62.104.179:8080/mindedu-api/board/file_list",
+            method : "get",
+            dataType: "JSON",
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                //var j = 1;
+                var j = data.length;
+                $.each(data, function(i, item) {
+                   $('#list_table').append(
+                        $('<tr>').append(
+                            $('<td>').append(j--),
+                            $('<td>').append("<a href='detailInfo.html?id="+data[i].idx+"' style='color:blue;'>"+ data[i].title +"</a>"),
+                            $('<td>').append("<a href='http://211.62.104.179/board_file/"+data[i].fileName+"' style='color:blue;' target='_blank'>" + data[i].fileName + "</a>"),
+                            $('<td>').append(data[i].createUserName),
+                            $('<td>').append(getDateTimeSplitComma(data[i].createDate)),
+                            $('<td>').append("<button class='btn_pack red' style='min-width:45px;' id='"+ data[i].idx +"' onclick='goDelte(this.id);' >삭제</button>")
+                        )
+                    );
+                });
+            },
+            error : function (jqXHR, exception) {
+                console.log(""+exception);
+            }
+        });
+
+    }
+    
+    function goDelte(fileId) { //삭제
+        if(fileId == '1'){
+            alert("삭제할수 없는 공지글 입니다.");
+            return false;
+        }
+        var url =  "http://211.62.104.179:8080/mindedu-api/board/update_file/"+fileId;
+        if(confirm("삭제하시겠습니까?")){
+            $.ajax({
+                url: url,
+                method : "DELETE",
+                contentType: false,
+                success: function () {
+                    location.reload();
+                },
+                error : function (jqXHR, exception) {
+                    console.log(""+exception);
+                }
+            });
+        }
+    }
+
+</script>
+
+<body onload="init();">
+<!--<div id="header"></div>-->
+<div class="container">
+    <!--<div id="titleArea"></div>
+    <div class="title-top"></div>-->
+</div>
+</section>
+<section class="content">
+    <form name="frm" method="get">
+        <input type="hidden" name="page_gbn" id="page_gbn">
+    </form>
+    <div style="text-align:center;"><h3 class="title_t1">마인드에듀 파일 리스트</h3></div>
+
+    <div class="cont-wrap" style="width: 90%;">
+        <div style="text-align: right;"><button class="btn_pack blue" onclick="goPage();">등록</button></div>
+        <div class="tb_t1 colTable searchInfo">
+            <table>
+                <colsgroup>
+                    <col width="10%">
+                    <col width="90%">
+                </colsgroup>
+               <!-- <tr>
+                    <th>검색정보</th>
+                    <td>
+                        <div class="form-group">
+                            <div class="search-box clear">
+                                <select id="sel_searchType" class="form-control">
+                                    <option value="">제목</option>
+                                    <option value="">글쓴내용</option>
+                                </select>
+                                <div class="search-input-box">
+                                    <label><input type="text" class="form-control"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>-->
+            </table>
+            <!--<button class="btn_pack blue" type="button">검색</button>-->
+        </div>
+        <div id="testests"></div>
+        <div class="tb_t1">
+            <table id="list_table">
+                <colsgroup>
+                    <col width="5%" />
+                    <col width="15%" />
+                    <col width="15%" />
+                    <col width="15%" />
+                    <col width="15%" />
+                    <col width="15%" />
+                </colsgroup>
+                <tr class="t_head">
+                    <th>No.</th>
+                    <th style="width:30%;">제목</th>
+                    <th style="width:30%;">파일명</th>
+                    <th>작성자</th>
+                    <th>작성일</th>
+                    <th></th>
+                </tr>
+                <tbody id="dataList">
+
+                </tbody>
+                <tr>
+                    <td id="emptys" colspan='23' bgcolor="#ffffff" align='center' valign='middle' style="visibility:hidden"></td>
+                </tr>
+            </table>
+            <link rel="stylesheet" href="common/inc/com_pageNavi.inc">
+        </div>
+    </div>
+</section>
+</div>
+</body>
+<!--<div id="pageNav"></div>-->
+</html>

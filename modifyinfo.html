@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>마인드에듀게시판</title>
+</head>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="common/dist/style.bundle.css">
+<link rel="stylesheet" href="common/css/sider_menu.css">
+<link rel="stylesheet" href="common/css/addStyle.css">
+<link rel="stylesheet" href="common/jsp/header.html">
+<script type="text/javascript">
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    $(document).ready(function(){
+        $("#header").load("common/jsp/header.html");
+        $("#titleArea").load("common/jsp/titleArea.html");
+    });
+
+    //파일 선택시 파일명 보이게 하기
+    $(document).on('change', '.custom-file-input', function() {
+        $(this).parent().find('.custom-file-control').html($(this).val().replace(/C:\\fakepath\\/i, ''));
+    });
+
+    function modify() {
+        var data     = new FormData();
+        var userName = $("#userName ").val();
+        var title    = $("#title").val();
+        var content  = $("#content").val();
+        var file     = $('#attachFile').val();
+        var referUrl = $('#referUrl').val();
+        var id = getParameterByName('id');
+
+        if(userName == ""){
+            alert("작성자를 입력해 주세요.");
+            return false;
+        }
+        if(title == ""){
+            alert("제목 입력해 주세요.");
+            return false;
+        }
+            data.append("boardId", id);
+	        data.append("userName", userName);
+            data.append("title", title);
+            data.append("contents", content);
+            data.append("referUrl", referUrl);
+        $.each($('#attachFile')[0].files, function(i, file) {
+            data.append('file_name', file);
+        });
+        //var url = "http://172.30.1.11:8888/mindedu-api/board/update_file";
+        $.ajax({
+            url: "http://211.62.104.179:8080/mindedu-api/board/update_file/",
+            //url : url,
+            method : "post",
+            dataType: "JSON",
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                alert("수정이 완료 되었습니다.");
+                location.reload();
+            },
+            error : function (jqXHR, exception) {
+                console.log(exception);
+            }
+        });
+    }
+
+    function init() {
+        var id = getParameterByName('id');
+        var data = new FormData();
+        $.ajax({
+            //url : "http://172.30.1.11:8888/mindedu-api/board/file_detail/"+id,
+            url: "http://211.62.104.179:8080/mindedu-api/board/file_detail/"+id,
+            method : "get",
+            dataType: "JSON",
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                console.log(data);
+                $("#content").val(data.contents);
+                $("#userName").val(data.createUserName);
+                $("#title").val(data.title);
+
+                var referUrl1 = "<a href='"+data.referUrl+"' style='color:blue;' target='_blank'>" + data.referUrl + "</a>";
+                $("#referUrl").val(data.referUrl);
+
+                var fileUrl = "<a href='http://211.62.104.179/board_file/"+data.fileName+"' style='color:blue;' target='_blank'>" + data.fileName + "</a>";
+
+                $("#attachFile1").html(data.fileName);
+                /*$("#content").val(data.contents);
+                $("#userName").val(data.createUserName);
+                $("#title").val(data.title);
+                $("#referUrl").val(data.referUrl);
+                //var fileUrl = "<a href='http://211.62.104.179/board_file/"+data.fileName+"' style='color:blue;' target='_blank'>" + data.fileName + "</a>";
+                var fileUrl = "<a href='http://211.62.104.179/board_file/"+data.fileName+"' style='color:blue;' target='_blank'>" + data.fileName + "</a>";
+                $("#attachFile1").html(fileUrl);*/
+            },
+            error : function (jqXHR, exception) {
+                console.log(""+exception);
+            }
+        });
+    }
+
+    function goModify() {
+        location.href = "modifyinfo.html";
+    }
+
+    function goList() {
+        location.href="index.html";
+    }
+</script>
+
+<body onload="init();">
+<!--<div id="header"></div>-->
+<div class="container">
+    <!--<div id="titleArea"></div>
+    <div class="title-top">11</div>-->
+</div>
+</section>
+<form name="frm" id="frm" method="get">
+    <input type="hidden" name="page_gbn" id="page_gbn">
+</form>
+
+<section class="content">
+    <h3 class="title_t1">내용 상세보기</h3>
+    <div class="tb_t1" >
+        <table  style="width: 50%;">
+            <tbody>
+            <tr>
+                <th style="width: 66px;">작성자<b>*</b></th>
+                <td>
+                    <!--<span id="userName"></span>-->
+                    <input type="text" class="form-control" id="userName" width="30px;">
+                </td>
+            </tr>
+            <tr>
+                <th>제목<b>*</b></th>
+                <td colspan="3">
+                    <!--<span id="title"></span>-->
+                    <input type="text" class="form-control" id="title" width="30px;">
+                </td>
+            </tr>
+            <tr>
+                <th>내용</th>
+                <td colspan="3">
+                    <!--<span id="content"></span>-->
+                    <textarea class="form-control" rows="5" id="content"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <th>참조링크</th>
+                <td>
+                    <!--<span id="referUrl"></span>-->
+                    <input type="text" class="form-control" id="referUrl" width="30px;">
+                </td>
+            </tr>
+            <tr>
+                <th>첨부파일</th>
+                <td colspan="3">
+                    <label class="custom-file">
+                        <input type="file" id="attachFile" class="custom-file-input" required>
+                        <span class="custom-file-control"></span>
+                    </label>
+                    <span id="attachFile1"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <button class="btn_pack blue s2" onclick="modify();">수정</button>
+        <button class="btn_pack blue s2" onclick="goList();">목록</button>
+    </div>
+</section>
+</body>
+</html>
